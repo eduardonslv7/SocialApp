@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rede_social/features/auth/domain/entities/app_user.dart';
 import 'package:rede_social/features/auth/domain/repository/auth_repo.dart';
 
 class FirebaseAuthRepo implements AuthRepo {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
   @override
   Future<AppUser?> loginWithEmailPassword(String email, String password) async {
@@ -42,6 +44,12 @@ class FirebaseAuthRepo implements AuthRepo {
         email: email,
         name: name,
       );
+
+      // salvar dados do usuário no firebase
+      await firebaseFirestore
+          .collection("users")
+          .doc(user.uid)
+          .set(user.toJson());
 
       // retornar usuário
       return user;
