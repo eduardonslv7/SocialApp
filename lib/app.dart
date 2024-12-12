@@ -4,19 +4,35 @@ import 'package:rede_social/features/auth/data/firebase_auth_repo.dart';
 import 'package:rede_social/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:rede_social/features/auth/presentation/cubits/auth_states.dart';
 import 'package:rede_social/features/auth/presentation/pages/auth_page.dart';
-import 'package:rede_social/features/post/presentation/pages/home_page.dart';
+import 'package:rede_social/features/home/presentation/pages/home_page.dart';
+import 'package:rede_social/features/profile/data/firebase_profile_repo.dart';
+import 'package:rede_social/features/profile/presentation/cubits/profile_cubit.dart';
 import 'package:rede_social/themes/light_mode.dart';
 
 class MyApp extends StatelessWidget {
   // auth repo
   final authRepo = FirebaseAuthRepo();
+
+  // profile repo
+  final profileRepo = FirebaseProfileRepo();
+
   MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // fornece cubit para o app
-    return BlocProvider(
-      create: (context) => AuthCubit(authRepo: authRepo)..checkAuth(),
+    // fornece cubits para o app
+    return MultiBlocProvider(
+      providers: [
+        // auth cubit
+        BlocProvider<AuthCubit>(
+          create: (context) => AuthCubit(authRepo: authRepo)..checkAuth(),
+        ),
+
+        // profile cubit
+        BlocProvider<ProfileCubit>(
+          create: (context) => ProfileCubit(profileRepo: profileRepo),
+        ),
+      ],
       child: MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: lightMode,

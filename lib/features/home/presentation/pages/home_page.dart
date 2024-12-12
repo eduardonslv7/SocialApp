@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rede_social/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:rede_social/features/home/presentation/components/my_drawer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,14 +15,8 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Início'),
         centerTitle: true,
-        actions: [
-          IconButton(
-              onPressed: () {
-                context.read<AuthCubit>().logout();
-              },
-              icon: const Icon(Icons.logout))
-        ],
       ),
+      drawer: const MyDrawer(),
     );
   }
 }
