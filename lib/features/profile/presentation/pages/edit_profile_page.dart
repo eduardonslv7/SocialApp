@@ -1,3 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rede_social/features/auth/presentation/components/my_text_field.dart';
@@ -15,17 +20,54 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
+  // obter imagem mobile
+  PlatformFile? imagePickedFile;
+
+  // obter imagem web
+  Uint8List? webImage;
+
   final bioTextController = TextEditingController();
 
-  // função de atualizar alterações perfil
+  // escolher imagem
+  Future<void> pickImage() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: kIsWeb,
+    );
 
+    if (result != null) {
+      setState(() {
+        imagePickedFile = result.files.first;
+
+        if (kIsWeb) {
+          webImage = imagePickedFile!.bytes;
+        }
+      });
+    }
+  }
+
+  // função de atualizar alterações do perfil
   void updateProfile() async {
     final profileCubit = context.read<ProfileCubit>();
-    if (bioTextController.text.isNotEmpty) {
+
+    // prepara imagens
+    final String uid = widget.user.uid;
+    final imageMobilePath = kIsWeb ? null : imagePickedFile?.path;
+    final imageWebBytes = kIsWeb ? imagePickedFile?.bytes : null;
+    final String? newBio =
+        bioTextController.text.isNotEmpty ? bioTextController.text : null;
+
+    // atualiza o perfil apenas se realmente tiver algo para atualizar
+    if (imagePickedFile != null || newBio != null) {
       profileCubit.updateProfile(
-        uid: widget.user.uid,
-        newBio: bioTextController.text,
+        uid: uid,
+        newBio: newBio,
+        imageMobilePath: imageMobilePath,
+        imageWebBytes: imageWebBytes,
       );
+      // nada para atualizar
+    } else {
+      Navigator.pop(context);
     }
   }
 
@@ -52,21 +94,78 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
   }
 
-  Widget buildEditPage({
-    double uploadProgress = 0.0,
-  }) {
+  Widget buildEditPage() {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Editar Perfil'),
         foregroundColor: Theme.of(context).colorScheme.primary,
         actions: [
-          // botão de salvar
+          // botão de salvar alterações
           IconButton(onPressed: updateProfile, icon: const Icon(Icons.check)),
         ],
       ),
       body: Column(
         children: [
           // foto de perfil
+          Center(
+            child: Container(
+                height: 200,
+                width: 200,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.secondary,
+                  shape: BoxShape.circle,
+                ),
+                clipBehavior: Clip.hardEdge,
+                child:
+                    // exibir imagem selecionada mobile
+                    (!kIsWeb && imagePickedFile != null)
+                        ? Image.file(
+                            File(imagePickedFile!.path!),
+                            fit: BoxFit.cover,
+                          )
+                        :
+                        // exibir imagem selecionada web
+                        (kIsWeb && webImage != null)
+                            ? Image.memory(
+                                webImage!,
+                                fit: BoxFit.cover,
+                              )
+                            :
+
+                            // nenhuma imagem selecionada => exibir imagem já existente
+                            CachedNetworkImage(
+                                imageUrl: widget.user.profileImageUrl,
+
+                                // carregando
+                                placeholder: (context, url) =>
+                                    const CircularProgressIndicator(),
+
+                                // erros
+                                errorWidget: (context, url, error) => Icon(
+                                  Icons.person,
+                                  size: 72,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+
+                                // carregado
+                                imageBuilder: (context, imageProvider) => Image(
+                                  image: imageProvider,
+                                  fit: BoxFit.cover,
+                                ),
+                              )),
+          ),
+          const SizedBox(height: 25),
+
+          // botão selecionar imagem
+          Center(
+            child: MaterialButton(
+              onPressed: pickImage,
+              color: Colors.blue,
+              child: const Text('Selecionar imagem'),
+            ),
+          ),
+
+          const SizedBox(height: 25),
 
           // bio
           const Text('Bio'),

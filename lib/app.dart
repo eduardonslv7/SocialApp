@@ -7,14 +7,18 @@ import 'package:rede_social/features/auth/presentation/pages/auth_page.dart';
 import 'package:rede_social/features/home/presentation/pages/home_page.dart';
 import 'package:rede_social/features/profile/data/firebase_profile_repo.dart';
 import 'package:rede_social/features/profile/presentation/cubits/profile_cubit.dart';
+import 'package:rede_social/features/storage/data/firebase_storage_repo.dart';
 import 'package:rede_social/themes/light_mode.dart';
 
 class MyApp extends StatelessWidget {
   // auth repo
-  final authRepo = FirebaseAuthRepo();
+  final firebaseAuthRepo = FirebaseAuthRepo();
 
   // profile repo
-  final profileRepo = FirebaseProfileRepo();
+  final firebaseProfileRepo = FirebaseProfileRepo();
+
+  // storage repo
+  final firebaseStorageRepo = FirebaseStorageRepo();
 
   MyApp({super.key});
 
@@ -25,12 +29,16 @@ class MyApp extends StatelessWidget {
       providers: [
         // auth cubit
         BlocProvider<AuthCubit>(
-          create: (context) => AuthCubit(authRepo: authRepo)..checkAuth(),
+          create: (context) =>
+              AuthCubit(authRepo: firebaseAuthRepo)..checkAuth(),
         ),
 
         // profile cubit
         BlocProvider<ProfileCubit>(
-          create: (context) => ProfileCubit(profileRepo: profileRepo),
+          create: (context) => ProfileCubit(
+            profileRepo: firebaseProfileRepo,
+            storageRepo: firebaseStorageRepo,
+          ),
         ),
       ],
       child: MaterialApp(

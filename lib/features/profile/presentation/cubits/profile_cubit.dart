@@ -1,11 +1,16 @@
+import 'dart:typed_data';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rede_social/features/profile/domain/repository/profile_repo.dart';
 import 'package:rede_social/features/profile/presentation/cubits/profile_states.dart';
+import 'package:rede_social/features/storage/domain/storage_repo.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   final ProfileRepo profileRepo;
+  final StorageRepo storageRepo;
 
-  ProfileCubit({required this.profileRepo}) : super(ProfileInitial());
+  ProfileCubit({required this.profileRepo, required this.storageRepo})
+      : super(ProfileInitial());
 
   // busca o perfil do usuário usando o repo
   Future<void> fetchUserProfile(String uid) async {
@@ -25,7 +30,12 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   // atualiza a bio e/ou a foto de perfil
 
-  Future<void> updateProfile({required String uid, String? newBio}) async {
+  Future<void> updateProfile({
+    required String uid,
+    String? newBio,
+    String? imageMobilePath,
+    Uint8List? imageWebBytes,
+  }) async {
     emit(ProfileLoading());
 
     try {
@@ -38,10 +48,30 @@ class ProfileCubit extends Cubit<ProfileState> {
       }
 
       // atualiza foto de perfil
+      String? imageDownloadUrl;
+
+      if (imageWebBytes != null || imageMobilePath != null) {
+        // para mobile
+        if (imageMobilePath != null) {
+          imageDownloadUrl =
+              await storageRepo.uploadProfileImageMobile(imageMobilePath, uid);
+
+          // para web
+        } else if (imageWebBytes != null) {
+          imageDownloadUrl =
+              await storageRepo.uploadProfileImageWeb(imageWebBytes, uid);
+        }
+        if (imageDownloadUrl == null) {
+          emit(ProfileError('Falha ao enviar imagem'));
+          return;
+        }
+      }
 
       // atualiza o novo perfil
-      final updatedProfile =
-          currentUser.copyWith(newBio: newBio ?? currentUser.bio);
+      final updatedProfile = currentUser.copyWith(
+        newBio: newBio ?? currentUser.bio,
+        newProfileImageUrl: imageDownloadUrl ?? currentUser.profileImageUrl,
+      );
 
       // atualiza no repo
       await profileRepo.updateProfile(updatedProfile);
