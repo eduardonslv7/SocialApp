@@ -6,4 +6,10 @@ abstract class StorageRepo {
 
   // enviar fotos de perfil em plataformas web
   Future<String?> uploadProfileImageWeb(Uint8List fileBytes, String fileName);
+
+  // enviar posts em plataformas mobile
+  Future<String?> uploadPostImageMobile(String path, String fileName);
+
+  // enviar posts em plataformas web
+  Future<String?> uploadPostImageWeb(Uint8List fileBytes, String fileName);
 }

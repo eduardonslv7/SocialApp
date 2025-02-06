@@ -5,6 +5,8 @@ import 'package:rede_social/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:rede_social/features/auth/presentation/cubits/auth_states.dart';
 import 'package:rede_social/features/auth/presentation/pages/auth_page.dart';
 import 'package:rede_social/features/home/presentation/pages/home_page.dart';
+import 'package:rede_social/features/post/data/firebase_post_repo.dart';
+import 'package:rede_social/features/post/presentation/cubits/post_cubit.dart';
 import 'package:rede_social/features/profile/data/firebase_profile_repo.dart';
 import 'package:rede_social/features/profile/presentation/cubits/profile_cubit.dart';
 import 'package:rede_social/features/storage/data/firebase_storage_repo.dart';
@@ -19,6 +21,9 @@ class MyApp extends StatelessWidget {
 
   // storage repo
   final firebaseStorageRepo = FirebaseStorageRepo();
+
+  // post repo
+  final firebasePostRepo = FirebasePostRepo();
 
   MyApp({super.key});
 
@@ -40,6 +45,13 @@ class MyApp extends StatelessWidget {
             storageRepo: firebaseStorageRepo,
           ),
         ),
+
+        // post cubit
+        BlocProvider<PostCubit>(
+            create: (context) => PostCubit(
+                  postRepo: firebasePostRepo,
+                  storageRepo: firebaseStorageRepo,
+                )),
       ],
       child: MaterialApp(
           debugShowCheckedModeBanner: false,

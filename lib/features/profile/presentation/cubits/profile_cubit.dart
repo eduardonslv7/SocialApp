@@ -5,6 +5,8 @@ import 'package:rede_social/features/profile/domain/repository/profile_repo.dart
 import 'package:rede_social/features/profile/presentation/cubits/profile_states.dart';
 import 'package:rede_social/features/storage/domain/storage_repo.dart';
 
+import '../../domain/entities/profile_user.dart';
+
 class ProfileCubit extends Cubit<ProfileState> {
   final ProfileRepo profileRepo;
   final StorageRepo storageRepo;
@@ -28,8 +30,13 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
   }
 
-  // atualiza a bio e/ou a foto de perfil
+  // retorna perfil do usuário com o uid fornecido
+  Future<ProfileUser?> getUserProfile(String uid) async {
+    final user = await profileRepo.fetchUserProfile(uid);
+    return user;
+  }
 
+  // atualiza a bio e/ou a foto de perfil
   Future<void> updateProfile({
     required String uid,
     String? newBio,
