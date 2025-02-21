@@ -64,4 +64,13 @@ class PostCubit extends Cubit<PostState> {
       emit(PostsError('Falha ao excluir postagem: $e'));
     }
   }
+
+  // curtidas postagem
+  Future<void> toggleLikePost(String postId, String userId) async {
+    try {
+      await postRepo.toggleLikePost(postId, userId);
+    } catch (e) {
+      emit(PostsError('Erro ao curtir/descutir: $e'));
+    }
+  }
 }

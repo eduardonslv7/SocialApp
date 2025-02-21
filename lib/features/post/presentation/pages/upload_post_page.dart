@@ -71,12 +71,14 @@ class _UploadPostPageState extends State<UploadPostPage> {
 
     // criar um novo objeto post
     final newPost = Post(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: currentUser!.uid,
-        userName: currentUser!.name,
-        text: textController.text,
-        imageUrl: '',
-        timestamp: DateTime.now());
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userId: currentUser!.uid,
+      userName: currentUser!.name,
+      text: textController.text,
+      imageUrl: '',
+      timestamp: DateTime.now(),
+      likes: [],
+    );
 
     // post cubit
     final postCubit = context.read<PostCubit>();

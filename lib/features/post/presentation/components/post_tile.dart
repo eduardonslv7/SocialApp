@@ -58,6 +58,35 @@ class _PostTileState extends State<PostTile> {
     }
   }
 
+  // usuário aperta o botão de curtir
+  void toggleLikePost() {
+    // estado atual da curtida
+    final isLiked = widget.post.likes.contains(currentUser!.uid);
+
+    // aplicar curtida instantaneamente e atualizar a UI
+    setState(() {
+      if (isLiked) {
+        widget.post.likes.remove(currentUser!.uid);
+      } else {
+        widget.post.likes.add(currentUser!.uid);
+      }
+    });
+
+    // atualizar curtida
+    postCubit
+        .toggleLikePost(widget.post.id, currentUser!.uid)
+        .catchError((error) {
+      // se houver um erro, voltar ao valor original
+      setState(() {
+        if (isLiked) {
+          widget.post.likes.add(currentUser!.uid); // reverter curtida
+        } else {
+          widget.post.likes.remove(currentUser!.uid); // reverter descurtida
+        }
+      });
+    });
+  }
+
   // mostrar opções para deletar
   void showOptions() {
     showDialog(
@@ -152,17 +181,41 @@ class _PostTileState extends State<PostTile> {
             padding: const EdgeInsets.all(20.0),
             child: Row(
               children: [
-                // botão de curtir
-                const Icon(Icons.favorite_border),
+                SizedBox(
+                  width: 50,
+                  child: Row(
+                    children: [
+                      // botão de curtir
+                      GestureDetector(
+                        onTap: toggleLikePost,
+                        child: Icon(
+                          widget.post.likes.contains(currentUser!.uid)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: widget.post.likes.contains(currentUser!.uid)
+                              ? Colors.red
+                              : Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
 
-                Text('0'),
+                      const SizedBox(width: 5),
 
-                const SizedBox(width: 20),
+                      // contagem de likes
+                      Text(
+                        widget.post.likes.length.toString(),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
                 // botão de comentar
                 const Icon(Icons.comment),
 
-                Text('0'),
+                const Text('0'),
 
                 const Spacer(),
 

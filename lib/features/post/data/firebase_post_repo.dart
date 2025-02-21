@@ -56,4 +56,35 @@ class FirebasePostRepo implements PostRepo {
       throw Exception('Erro ao buscar postagens do usuário: $e');
     }
   }
+
+  @override
+  Future<void> toggleLikePost(String postId, String userId) async {
+    try {
+      // obter os dados do post através da firestore
+      final postDoc = await postsCollection.doc(postId).get();
+
+      if (postDoc.exists) {
+        final post = Post.fromJson(postDoc.data() as Map<String, dynamic>);
+
+        // verificar se o usuário ja curtiu o post
+        final hasLiked = post.likes.contains(userId);
+
+        // atualizar a lista de likes
+        if (hasLiked) {
+          post.likes.remove(userId);
+        } else {
+          post.likes.add(userId);
+        }
+
+        // atualizar os dados do post com a nova lista de likes
+        await postsCollection.doc(postId).update({
+          'likes': post.likes,
+        });
+      } else {
+        throw Exception('Postagem não encontrada');
+      }
+    } catch (e) {
+      throw Exception('Erro ao curtir/descurtir: $e');
+    }
+  }
 }
