@@ -2,11 +2,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rede_social/features/auth/domain/entities/app_user.dart';
+import 'package:rede_social/features/auth/presentation/components/my_text_field.dart';
 import 'package:rede_social/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:rede_social/features/post/domain/entities/comment.dart';
 import 'package:rede_social/features/post/domain/entities/post.dart';
+import 'package:rede_social/features/post/presentation/components/comment_tile.dart';
 import 'package:rede_social/features/post/presentation/cubits/post_cubit.dart';
+import 'package:rede_social/features/post/presentation/cubits/post_states.dart';
 import 'package:rede_social/features/profile/domain/entities/profile_user.dart';
 import 'package:rede_social/features/profile/presentation/cubits/profile_cubit.dart';
+import 'package:rede_social/features/profile/presentation/pages/profile_page.dart';
 
 class PostTile extends StatefulWidget {
   final Post post;
@@ -87,6 +92,60 @@ class _PostTileState extends State<PostTile> {
     });
   }
 
+  // controller do texto do comentário
+  final commentTextController = TextEditingController();
+
+  // abrir caixa de comentário quando o usuário quiser escrever um novo comentário
+  void openNewCommentBox() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: MyTextField(
+          controller: commentTextController,
+          hintText: 'Escreva seu comentário',
+          obscureText: false,
+        ),
+        actions: [
+          // botão para cancelar
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar')),
+
+          // botão para salvar
+          TextButton(
+              onPressed: () {
+                addComment();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Salvar')),
+        ],
+      ),
+    );
+  }
+
+  void addComment() {
+    // criar novo comentário
+    final newComment = Comment(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      postId: widget.post.id,
+      userId: currentUser!.uid,
+      userName: currentUser!.name,
+      text: commentTextController.text,
+      timestamp: DateTime.now(),
+    );
+
+    // adicionar comentário usando cubit
+    if (commentTextController.text.isNotEmpty) {
+      postCubit.addComment(widget.post.id, newComment);
+    }
+  }
+
+  @override
+  void dispose() {
+    commentTextController.dispose();
+    super.dispose();
+  }
+
   // mostrar opções para deletar
   void showOptions() {
     showDialog(
@@ -116,54 +175,62 @@ class _PostTileState extends State<PostTile> {
       color: Theme.of(context).colorScheme.secondary,
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                // foto de perfil
-                postUser?.profileImageUrl != null
-                    ? CachedNetworkImage(
-                        imageUrl: postUser!.profileImageUrl,
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.person),
-                        imageBuilder: (context, imageProvider) => Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                              image: imageProvider,
-                              fit: BoxFit.cover,
+          GestureDetector(
+            onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ProfilePage(
+                          uid: widget.post.userId,
+                        ))),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // foto de perfil
+                  postUser?.profileImageUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: postUser!.profileImageUrl,
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.person),
+                          imageBuilder: (context, imageProvider) => Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                image: imageProvider,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
-                        ),
-                      )
-                    : const Icon(Icons.person),
+                        )
+                      : const Icon(Icons.person),
 
-                const SizedBox(width: 10),
+                  const SizedBox(width: 10),
 
-                // nome
-                Text(
-                  widget.post.userName,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const Spacer(),
-
-                // botão de deletar
-                if (isOwnPost)
-                  GestureDetector(
-                    onTap: showOptions,
-                    child: Icon(
-                      Icons.delete,
-                      color: Theme.of(context).colorScheme.primary,
+                  // nome
+                  Text(
+                    widget.post.userName,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontWeight: FontWeight.bold,
                     ),
-                  )
-              ],
+                  ),
+
+                  const Spacer(),
+
+                  // botão de deletar
+                  if (isOwnPost)
+                    GestureDetector(
+                      onTap: showOptions,
+                      child: Icon(
+                        Icons.delete,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    )
+                ],
+              ),
             ),
           ),
 
@@ -213,9 +280,24 @@ class _PostTileState extends State<PostTile> {
                 ),
 
                 // botão de comentar
-                const Icon(Icons.comment),
+                GestureDetector(
+                  onTap: openNewCommentBox,
+                  child: Icon(
+                    Icons.comment,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
 
-                const Text('0'),
+                const SizedBox(width: 5),
+
+                // contagem de comentários
+                Text(
+                  widget.post.comments.length.toString(),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: 12,
+                  ),
+                ),
 
                 const Spacer(),
 
@@ -223,7 +305,69 @@ class _PostTileState extends State<PostTile> {
                 Text(widget.post.timestamp.toString()),
               ],
             ),
-          )
+          ),
+
+          // legenda
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20),
+            child: Row(
+              children: [
+                // usuário
+                Text(
+                  widget.post.userName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(width: 10),
+
+                // texto
+                Text(widget.post.text),
+              ],
+            ),
+          ),
+
+          // comentários
+          BlocBuilder<PostCubit, PostState>(builder: (context, state) {
+            // carregado
+            if (state is PostsLoaded) {
+              final post =
+                  state.posts.firstWhere((post) => (post.id == widget.post.id));
+
+              if (post.comments.isNotEmpty) {
+                // contagem de comentários
+                int showCommentsCount = post.comments.length;
+
+                return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: showCommentsCount,
+                    itemBuilder: (context, index) {
+                      // obter comentário individual
+                      final comment = post.comments[index];
+
+                      // UI
+                      return CommentTile(comment: comment);
+                    });
+              }
+            }
+
+            // carregando
+            if (state is PostsLoading) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+
+              // erros
+            } else if (state is PostsError) {
+              return Center(
+                child: Text(state.message),
+              );
+            } else {
+              return const SizedBox();
+            }
+          })
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rede_social/features/post/domain/entities/comment.dart';
 import 'package:rede_social/features/post/presentation/cubits/post_states.dart';
 import '../../../storage/domain/storage_repo.dart';
 import '../../domain/entities/post.dart';
@@ -71,6 +72,28 @@ class PostCubit extends Cubit<PostState> {
       await postRepo.toggleLikePost(postId, userId);
     } catch (e) {
       emit(PostsError('Erro ao curtir/descutir: $e'));
+    }
+  }
+
+  // adicionar comentário em uma postagem
+  Future<void> addComment(String postId, Comment comment) async {
+    try {
+      await postRepo.addComment(postId, comment);
+
+      await fetchAllPosts();
+    } catch (e) {
+      emit(PostsError('Erro ao adicionar comentário: $e'));
+    }
+  }
+
+  // deletar comentário de uma postagem
+  Future<void> deleteComment(String postId, String commentId) async {
+    try {
+      await postRepo.deleteComment(postId, commentId);
+
+      await fetchAllPosts();
+    } catch (e) {
+      emit(PostsError('Erro ao deletar comentário: $e'));
     }
   }
 }

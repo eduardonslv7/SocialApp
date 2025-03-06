@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rede_social/features/auth/domain/entities/app_user.dart';
 import 'package:rede_social/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:rede_social/features/post/presentation/components/post_tile.dart';
+import 'package:rede_social/features/post/presentation/cubits/post_cubit.dart';
+import 'package:rede_social/features/post/presentation/cubits/post_states.dart';
 import 'package:rede_social/features/profile/presentation/components/bio_box.dart';
 import 'package:rede_social/features/profile/presentation/cubits/profile_cubit.dart';
 import 'package:rede_social/features/profile/presentation/cubits/profile_states.dart';
@@ -23,6 +26,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // obter o usuário atual
   late AppUser? currentUser = authCubit.currentUser;
+
+  // postagens
+  int postCount = 0;
 
   // na inicialização, carregar os dados do perfil
   @override
@@ -56,13 +62,15 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: const Icon(Icons.edit))
               ],
             ),
-            body: Column(
+            body: ListView(
               children: [
                 // email
-                Text(
-                  user.email,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                Center(
+                  child: Text(
+                    user.email,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 25),
@@ -129,6 +137,44 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 10),
+
+                // lista de postagens
+                BlocBuilder<PostCubit, PostState>(builder: (context, state) {
+                  // carregado
+                  if (state is PostsLoaded) {
+                    // filtrar as postagens pelo id do usuário
+                    final userPosts = state.posts
+                        .where((post) => post.userId == widget.uid)
+                        .toList();
+
+                    postCount = userPosts.length;
+
+                    return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: postCount,
+                        itemBuilder: (context, index) {
+                          final post = userPosts[index];
+
+                          return PostTile(
+                              post: post,
+                              onDeletePressed: () => context
+                                  .read<PostCubit>()
+                                  .deletePost(post.id));
+                        });
+
+                    // carregando
+                  } else if (state is PostsLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else {
+                    return const Center(
+                      child: Text('Sem postagens..'),
+                    );
+                  }
+                })
               ],
             ),
           );
