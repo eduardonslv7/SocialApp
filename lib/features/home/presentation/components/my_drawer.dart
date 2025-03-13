@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rede_social/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:rede_social/features/home/presentation/components/my_drawer_tile.dart';
 import 'package:rede_social/features/profile/presentation/pages/profile_page.dart';
+import 'package:rede_social/features/search/presentation/pages/search_page.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
@@ -52,7 +53,10 @@ class MyDrawer extends StatelessWidget {
               MyDrawerTile(
                 title: 'BUSCAR',
                 icon: Icons.search,
-                onTap: () {},
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const SearchPage())),
               ),
               MyDrawerTile(
                 title: 'CONFIGURAÇÕES',
