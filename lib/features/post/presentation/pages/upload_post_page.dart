@@ -10,6 +10,7 @@ import 'package:rede_social/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:rede_social/features/post/domain/entities/post.dart';
 import 'package:rede_social/features/post/presentation/cubits/post_cubit.dart';
 import 'package:rede_social/features/post/presentation/cubits/post_states.dart';
+import 'package:rede_social/responsive/constrained_scaffold.dart';
 
 class UploadPostPage extends StatefulWidget {
   const UploadPostPage({super.key});
@@ -123,7 +124,7 @@ class _UploadPostPageState extends State<UploadPostPage> {
   }
 
   Widget buildUploadPage() {
-    return Scaffold(
+    return ConstrainedScaffold(
       appBar: AppBar(
         title: const Text('Criar Postagem'),
         centerTitle: true,

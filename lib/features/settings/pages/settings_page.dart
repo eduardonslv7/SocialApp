@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rede_social/responsive/constrained_scaffold.dart';
 import 'package:rede_social/themes/theme_cubit.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -14,7 +15,7 @@ class SettingsPage extends StatelessWidget {
     // verificar se está utilizando o modo escuro (dark mode)
     bool isDarkMode = themeCubit.isDarkMode;
 
-    return Scaffold(
+    return ConstrainedScaffold(
         appBar: AppBar(
           title: const Text('Configurações'),
         ),
@@ -22,7 +23,7 @@ class SettingsPage extends StatelessWidget {
           children: [
             // dark mode tile
             ListTile(
-              title: Text('Modo escuro'),
+              title: const Text('Modo escuro'),
               trailing: CupertinoSwitch(
                   value: isDarkMode,
                   onChanged: (value) {

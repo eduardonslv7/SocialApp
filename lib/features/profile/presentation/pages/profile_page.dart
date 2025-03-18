@@ -13,6 +13,7 @@ import 'package:rede_social/features/profile/presentation/cubits/profile_cubit.d
 import 'package:rede_social/features/profile/presentation/cubits/profile_states.dart';
 import 'package:rede_social/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:rede_social/features/profile/presentation/pages/follower_page.dart';
+import 'package:rede_social/responsive/constrained_scaffold.dart';
 
 class ProfilePage extends StatefulWidget {
   final String uid;
@@ -91,7 +92,7 @@ class _ProfilePageState extends State<ProfilePage> {
           // carregar usuário
           final user = state.profileUser;
 
-          return Scaffold(
+          return ConstrainedScaffold(
             appBar: AppBar(
               title: Text(user.name),
               foregroundColor: Theme.of(context).colorScheme.primary,

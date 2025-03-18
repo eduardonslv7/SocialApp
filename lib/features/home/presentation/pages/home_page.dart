@@ -4,6 +4,7 @@ import 'package:rede_social/features/home/presentation/components/my_drawer.dart
 import 'package:rede_social/features/post/presentation/components/post_tile.dart';
 import 'package:rede_social/features/post/presentation/cubits/post_cubit.dart';
 import 'package:rede_social/features/post/presentation/cubits/post_states.dart';
+import 'package:rede_social/responsive/constrained_scaffold.dart';
 import '../../../post/presentation/pages/upload_post_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -37,7 +38,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ConstrainedScaffold(
       appBar: AppBar(
         title: const Text('Início'),
         foregroundColor: Theme.of(context).colorScheme.primary,
