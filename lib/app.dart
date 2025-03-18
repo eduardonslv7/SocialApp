@@ -12,7 +12,7 @@ import 'package:rede_social/features/profile/presentation/cubits/profile_cubit.d
 import 'package:rede_social/features/search/data/firebase_search_repo.dart';
 import 'package:rede_social/features/search/presentation/cubits/search_cubit.dart';
 import 'package:rede_social/features/storage/data/firebase_storage_repo.dart';
-import 'package:rede_social/themes/light_mode.dart';
+import 'package:rede_social/themes/theme_cubit.dart';
 
 class MyApp extends StatelessWidget {
   // auth repo
@@ -36,66 +36,74 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // fornece cubits para o app
     return MultiBlocProvider(
-      providers: [
-        // auth cubit
-        BlocProvider<AuthCubit>(
-          create: (context) =>
-              AuthCubit(authRepo: firebaseAuthRepo)..checkAuth(),
-        ),
-
-        // profile cubit
-        BlocProvider<ProfileCubit>(
-          create: (context) => ProfileCubit(
-            profileRepo: firebaseProfileRepo,
-            storageRepo: firebaseStorageRepo,
+        providers: [
+          // auth cubit
+          BlocProvider<AuthCubit>(
+            create: (context) =>
+                AuthCubit(authRepo: firebaseAuthRepo)..checkAuth(),
           ),
-        ),
 
-        // post cubit
-        BlocProvider<PostCubit>(
-            create: (context) => PostCubit(
-                  postRepo: firebasePostRepo,
-                  storageRepo: firebaseStorageRepo,
-                )),
+          // profile cubit
+          BlocProvider<ProfileCubit>(
+            create: (context) => ProfileCubit(
+              profileRepo: firebaseProfileRepo,
+              storageRepo: firebaseStorageRepo,
+            ),
+          ),
 
-        // search cubit
-        BlocProvider<SearchCubit>(
-          create: (context) => SearchCubit(searchRepo: firebaseSearchRepo),
-        ),
-      ],
-      child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: lightMode,
-          home: BlocConsumer<AuthCubit, AuthState>(
-            builder: (context, authState) {
-              print(authState);
-              // não autenticado => página de autenticação (login/registrar)
-              if (authState is Unauthenticated) {
-                return const AuthPage();
-              }
+          // post cubit
+          BlocProvider<PostCubit>(
+              create: (context) => PostCubit(
+                    postRepo: firebasePostRepo,
+                    storageRepo: firebaseStorageRepo,
+                  )),
 
-              // autenticado => home page
-              if (authState is Authenticated) {
-                return const HomePage();
-              }
+          // search cubit
+          BlocProvider<SearchCubit>(
+            create: (context) => SearchCubit(searchRepo: firebaseSearchRepo),
+          ),
 
-              // carregando
-              else {
-                return const Scaffold(
-                    body: Center(
-                  child: CircularProgressIndicator(),
-                ));
-              }
-            },
+          // theme cubit
+          BlocProvider<ThemeCubit>(create: (context) => ThemeCubit()),
+        ],
 
-            // para erros
-            listener: (context, state) {
-              if (state is AuthError) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(state.message)));
-              }
-            },
-          )),
-    );
+        // bloc builder: temas
+        child: BlocBuilder<ThemeCubit, ThemeData>(
+          builder: (context, currentTheme) => MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: currentTheme,
+
+              // bloc builder: verificar o auth state atual
+              home: BlocConsumer<AuthCubit, AuthState>(
+                builder: (context, authState) {
+                  print(authState);
+                  // não autenticado => página de autenticação (login/registrar)
+                  if (authState is Unauthenticated) {
+                    return const AuthPage();
+                  }
+
+                  // autenticado => home page
+                  if (authState is Authenticated) {
+                    return const HomePage();
+                  }
+
+                  // carregando
+                  else {
+                    return const Scaffold(
+                        body: Center(
+                      child: CircularProgressIndicator(),
+                    ));
+                  }
+                },
+
+                // para erros
+                listener: (context, state) {
+                  if (state is AuthError) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(state.message)));
+                  }
+                },
+              )),
+        ));
   }
 }

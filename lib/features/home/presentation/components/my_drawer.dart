@@ -4,6 +4,7 @@ import 'package:rede_social/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:rede_social/features/home/presentation/components/my_drawer_tile.dart';
 import 'package:rede_social/features/profile/presentation/pages/profile_page.dart';
 import 'package:rede_social/features/search/presentation/pages/search_page.dart';
+import 'package:rede_social/features/settings/pages/settings_page.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
@@ -61,7 +62,11 @@ class MyDrawer extends StatelessWidget {
               MyDrawerTile(
                 title: 'CONFIGURAÇÕES',
                 icon: Icons.settings,
-                onTap: () {},
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsPage(),
+                    )),
               ),
               const Spacer(),
               MyDrawerTile(
